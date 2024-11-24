@@ -4,6 +4,7 @@ import com.enoca.e_commerce.dto.CartItemDto;
 import com.enoca.e_commerce.dto.CartResponse;
 import com.enoca.e_commerce.dto.CartUpdateRequest;
 import com.enoca.e_commerce.dto.ProductResponse;
+import com.enoca.e_commerce.exception.InsufficientStockException;
 import com.enoca.e_commerce.exception.ProductAlreadyExistsInCartException;
 import com.enoca.e_commerce.exception.ResourceNotFoundException;
 import com.enoca.e_commerce.model.Cart;
@@ -14,6 +15,7 @@ import com.enoca.e_commerce.service.CartItemService;
 import com.enoca.e_commerce.service.CartService;
 import com.enoca.e_commerce.service.ProductService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -73,6 +75,8 @@ public class CartServiceImpl implements CartService {
         Cart cart = getCart(cartUpdateRequest.getId());
 
         Product product = productService.getProduct(cartUpdateRequest.getProductId());
+        //yeterli stock yoksa hata fırlatır
+        isStockAvailable(product, cartUpdateRequest.getQuantity());
 
         //ürün sepette mevcutmu kontrol eder varsa hata fırlatır
         checkProductExistsInCart(cartUpdateRequest, cart);
@@ -89,6 +93,13 @@ public class CartServiceImpl implements CartService {
         return cartMapToCartResponse(updatedCart);
     }
 
+    private void isStockAvailable(Product product, int quantity) {
+        if (product.getStock() < quantity){
+            throw new InsufficientStockException("Insufficient stock for Product");
+        }
+    }
+
+    @Transactional
     @Override
     public CartResponse removeProductFromCart(CartUpdateRequest cartUpdateRequest) {
         Cart cart = getCart(cartUpdateRequest.getId());

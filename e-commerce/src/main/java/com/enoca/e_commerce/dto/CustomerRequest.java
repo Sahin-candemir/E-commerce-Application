@@ -14,11 +14,11 @@ import lombok.*;
 public class CustomerRequest {
 
     @NotBlank(message = "First name cannot be blank")
-    @Size(min = 2, max = 20, message = "First name must be between 2 and 20 characters")
+    @Size(min = 3, max = 20, message = "First name must be between 3 and 20 characters")
     private String firstName;
 
     @NotBlank(message = "Last name cannot be blank")
-    @Size(min = 2, max = 20, message = "Last name must be between 2 and 20 characters")
+    @Size(min = 3, max = 20, message = "Last name must be between 3 and 20 characters")
     private String lastName;
 
     @NotBlank(message = "Email cannot be blank")
