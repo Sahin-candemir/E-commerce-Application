@@ -22,6 +22,7 @@
 * Postqresql
 * Dependencies
 ==> Spring Web
+--  Spring Validation
 --  Lombok
 --  Spring Data JPA
 --  Swagger
