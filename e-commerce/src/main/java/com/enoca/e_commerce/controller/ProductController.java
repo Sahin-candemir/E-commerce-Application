@@ -4,6 +4,7 @@ import com.enoca.e_commerce.dto.ProductRequest;
 import com.enoca.e_commerce.dto.ProductResponse;
 import com.enoca.e_commerce.dto.ProductUpdateRequest;
 import com.enoca.e_commerce.service.ProductService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<ProductResponse> CreateProduct(@RequestBody ProductRequest productRequest){
+    public ResponseEntity<ProductResponse> CreateProduct(@Valid @RequestBody ProductRequest productRequest){
         return new ResponseEntity<>(productService.createProduct(productRequest), HttpStatus.CREATED);
     }
     @GetMapping("/{id}")
@@ -33,7 +34,7 @@ public class ProductController {
         return new ResponseEntity<>(productService.getProductsByName(name), HttpStatus.OK);
     }
     @PutMapping
-    public ResponseEntity<ProductResponse> updateProduct(@RequestBody ProductUpdateRequest productUpdateRequest){
+    public ResponseEntity<ProductResponse> updateProduct(@Valid @RequestBody ProductUpdateRequest productUpdateRequest){
         return new ResponseEntity<>(productService.updateProduct(productUpdateRequest), HttpStatus.OK);
     }
     @DeleteMapping("/{id}")

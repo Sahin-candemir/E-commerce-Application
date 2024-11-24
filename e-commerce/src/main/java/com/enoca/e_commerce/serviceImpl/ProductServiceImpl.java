@@ -23,20 +23,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse createProduct(ProductRequest productRequest) {
-        Product product = Product.builder()
-                .name(productRequest.getName())
-                .description(productRequest.getDescription())
-                .price(productRequest.getPrice())
-                .stock(productRequest.getStock())
-                .build();
+        Product product = buildProduct(productRequest);
         Product saveProduct = productRepository.save(product);
 
-        return ProductResponse.builder()
-                .name(saveProduct.getName())
-                .description(saveProduct.getDescription())
-                .price(saveProduct.getPrice())
-                .stock(saveProduct.getStock())
-                .build();
+        return buildProductResponse(saveProduct);
     }
 
     @Override
@@ -44,12 +34,7 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: "+id));
 
-        return ProductResponse.builder()
-                .name(product.getName())
-                .description(product.getDescription())
-                .price(product.getPrice())
-                .stock(product.getStock())
-                .build();
+        return buildProductResponse(product);
     }
 
     @Override
@@ -81,6 +66,23 @@ public class ProductServiceImpl implements ProductService {
     public Product getProduct(Long id){
         return productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: "+id));
+    }
+    private ProductResponse buildProductResponse(Product saveProduct) {
+        return ProductResponse.builder()
+                .name(saveProduct.getName())
+                .description(saveProduct.getDescription())
+                .price(saveProduct.getPrice())
+                .stock(saveProduct.getStock())
+                .build();
+    }
+
+    private Product buildProduct(ProductRequest productRequest) {
+        return Product.builder()
+                .name(productRequest.getName())
+                .description(productRequest.getDescription())
+                .price(productRequest.getPrice())
+                .stock(productRequest.getStock())
+                .build();
     }
 
     private ProductResponse productMapToProductResponse(Product product) {

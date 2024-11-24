@@ -3,6 +3,7 @@ package com.enoca.e_commerce.controller;
 import com.enoca.e_commerce.dto.PlaceOrderRequest;
 import com.enoca.e_commerce.dto.OrderResponse;
 import com.enoca.e_commerce.service.OrderService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,7 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderResponse> placeOrder(@RequestBody PlaceOrderRequest placeOrderRequest){
+    public ResponseEntity<OrderResponse> placeOrder(@Valid @RequestBody PlaceOrderRequest placeOrderRequest){
         return new ResponseEntity<>(orderService.placeOrder(placeOrderRequest), HttpStatus.CREATED);
     }
     @GetMapping
