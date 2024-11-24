@@ -13,6 +13,7 @@
 * Sipariş verme (``POST /api/orders``)
 * Sipariş koduna göre sipariş detayı getirme (``GET /api/orders?code={code}``)
 * Müşterinin siparişlerini listeleme (``GET /api/orders/{customerId}``)
+* Yeni bir müşteri eklendiği zaman müşteri için sepet otomatik olarak ekleme
 
 ## Kullanılan Teknolojiler
 * Java 17
@@ -21,10 +22,13 @@
 * Postqresql
 * Dependencies
 ==> Spring Web
+--  Spring Validation
 --  Lombok
 --  Spring Data JPA
 --  Swagger
 ## API Dokümantasyonu
 * ``http://localhost:8080/swagger-ui.html``
-
+![Swagger.png](Swagger.png)
+## Veritabanı ER diagramı
+![E_commerce_ERD.png](E_commerce_ERD.png)
 
