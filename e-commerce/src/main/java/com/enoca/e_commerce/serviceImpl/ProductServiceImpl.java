@@ -31,23 +31,19 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse getProductById(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: "+id));
-
+        Product product = getProduct(id);
         return buildProductResponse(product);
     }
 
     @Override
     public List<ProductResponse> getProductsByName(String name) {
-
         List<Product> products = productRepository.findByName(name);
         return products.stream().map(this::productMapToProductResponse).collect(Collectors.toList());
     }
 
     @Override
     public ProductResponse updateProduct(ProductUpdateRequest productUpdateRequest) {
-        Product product = productRepository.findById(productUpdateRequest.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: "+productUpdateRequest.getId()));
+        Product product = getProduct(productUpdateRequest.getId());
 
         product.setPrice(productUpdateRequest.getPrice());
         product.setStock(productUpdateRequest.getStock());
@@ -59,8 +55,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteProduct(Long id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: "+id));
+        Product product = getProduct(id);
         productRepository.delete(product);
     }
     public Product getProduct(Long id){

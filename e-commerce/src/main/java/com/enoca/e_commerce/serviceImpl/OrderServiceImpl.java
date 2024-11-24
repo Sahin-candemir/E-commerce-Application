@@ -14,6 +14,7 @@ import com.enoca.e_commerce.service.CustomerService;
 import com.enoca.e_commerce.service.OrderService;
 import com.enoca.e_commerce.service.ProductService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,24 +34,34 @@ public class OrderServiceImpl implements OrderService {
         this.customerService = customerService;
     }
 
+    @Transactional
     @Override
     public OrderResponse placeOrder(PlaceOrderRequest placeOrderRequest) {
+
+        //sepet bilgisini al
         Cart cart = cartService.getCart(placeOrderRequest.getCartId());
+        //sepet boş mu kontrol et bos ise hata firlat
         checkCartIsEmpty(cart);
 
+        //alısveris geçmisi için order items listesi
         List<OrderItem> orderItems = new ArrayList<>();
+        //response için orderItemsDto listesi
         List<OrderItemDto> orderItemDtoList = new ArrayList<>();
         Order order = new Order();
+        //sepette ki itemlar için yeterli stok kontrolu var ise stock azalt
         for (CartItem cartItem : cart.getCartItems()){
             Product product = validateProductStock(cartItem);
             updateProductStock(cartItem, product);
 
+            //orderıtems listelerini doldur
             addOrderItemsAndOrderItemsDtoList(cartItem, product, order, orderItems, orderItemDtoList);
         }
         Customer customer = customerService.getCustomer(placeOrderRequest.getCustomerId());
 
+        //veritabanına kaydedilecek sipariş için Order doldur
         populateOrder(order, customer, cart, orderItems);
         Order savedOrder = orderRepository.save(order);
+        //sipariş verildikten sonra sepeti boşalt
         cartService.emptyCart(cart.getId());
         return buildOrderResponse(savedOrder, orderItemDtoList);
     }

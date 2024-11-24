@@ -45,6 +45,14 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+    @ExceptionHandler(ProductAlreadyExistsInCartException.class)
+    public ResponseEntity<ErrorResponse> handle(ProductAlreadyExistsInCartException exception){
+        ErrorResponse errorResponse = new ErrorResponse();
+        errorResponse.setMessage(exception.getMessage());
+        errorResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> hanle(MethodArgumentNotValidException exception){
         Map<String, String> errors = new HashMap<>();

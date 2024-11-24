@@ -40,18 +40,19 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartResponse updateCart(CartUpdateRequest cartUpdateRequest) {
-        Cart cart = cartRepository.findById(cartUpdateRequest.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with id : "+cartUpdateRequest.getId()));
-
+        Cart cart = getCart(cartUpdateRequest.getId());
+        //CartItem oluşturur
         CartItem cartItem = new CartItem();
-        cartItem.setCart(cart);
+        cartItem.setCart(cart); // CartItem ı Carta bağlar
         cartItem.setQuantity(cartUpdateRequest.getQuantity());
-        cartItem.setProduct(productService.getProduct(cartUpdateRequest.getProductId()));
+        cartItem.setProduct(productService.getProduct(cartUpdateRequest.getProductId())); // CartItem ile Product ilskilendirilir
 
+        //Mevcut itemları sepetten alır cartItems a ekler son olusturulan cart ıtemı ekler ve guncellenmis cartItems sepete eklenir
         Set<CartItem> cartItems = cart.getCartItems();
         cartItems.add(cartItem);
         cart.setCartItems(cartItems);
 
+        //güncellenmis sepet veritabanına kaydedilir, CartItem cascadeType.All sayesinde otomatik eklenir
         Cart savedCart = cartRepository.save(cart);
 
         return cartMapToCartResponse(savedCart);
@@ -59,31 +60,26 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public void emptyCart(Long id) {
-        Cart cart = cartRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with id : "+id));
+        if (!cartRepository.existsById(id)) {
+            // Eğer sepet yoksa hata fırlatır
+            throw new ResourceNotFoundException("Cart not found with id: " + id);
+        }
+        //sepet var ise itemleri siler
         cartItemService.deleteCartItems(id);
     }
 
     @Override
-    public Cart getCart(Long id) {
-        return cartRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with id : "+id));
-    }
-
-    @Override
     public CartResponse addProductToCart(CartUpdateRequest cartUpdateRequest) {
-        Cart cart = cartRepository.findById(cartUpdateRequest.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with id : "+cartUpdateRequest.getId()));
-        Product product = productService.getProduct(cartUpdateRequest.getProductId());
-        boolean productExistsInCart = cart.getCartItems().stream().anyMatch(cartItem -> cartItem.getProduct().getId().equals(cartUpdateRequest.getProductId()));
-        if (productExistsInCart){
-            throw new ProductAlreadyExistsInCartException("Product is already in the cart.");
-        }
-        CartItem cartItem = new CartItem();
-        cartItem.setCart(cart);
-        cartItem.setQuantity(cartUpdateRequest.getQuantity());
-        cartItem.setProduct(productService.getProduct(cartUpdateRequest.getProductId()));
+        Cart cart = getCart(cartUpdateRequest.getId());
 
+        Product product = productService.getProduct(cartUpdateRequest.getProductId());
+
+        //ürün sepette mevcutmu kontrol eder varsa hata fırlatır
+        checkProductExistsInCart(cartUpdateRequest, cart);
+        //sepete ait cart itemleri olusturur
+        CartItem cartItem = buildCartItem(cartUpdateRequest, cart, product);
+
+        //Mevcut itemları sepetten alır cartItems a ekler son olusturulan cart ıtemı ekler ve guncellenmis cartItems sepete eklenir
         Set<CartItem> cartItems = cart.getCartItems();
         cartItems.add(cartItem);
         cart.setCartItems(cartItems);
@@ -95,17 +91,43 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartResponse removeProductFromCart(CartUpdateRequest cartUpdateRequest) {
-        Cart cart = cartRepository.findById(cartUpdateRequest.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with id : "+cartUpdateRequest.getId()));
+        Cart cart = getCart(cartUpdateRequest.getId());
         Product product = productService.getProduct(cartUpdateRequest.getProductId());
-        boolean productExistsInCart = cart.getCartItems().stream().anyMatch(cartItem -> cartItem.getProduct().getId().equals(cartUpdateRequest.getProductId()));
-        if (!productExistsInCart){
+        //sepette ürün varligi kontrol edilir yoksa hata fırlatılır
+        if (!isProductInCart(cart, product)){
             throw new ResourceNotFoundException("Product not found in the cart.");
         }
-        cart.getCartItems().removeIf(cartItem -> cartItem.getProduct().getId().equals(cartUpdateRequest.getProductId()));
+        //ürün var ise sepete baglı olan cart item dan silinir
         cartItemService.deleteCartItemByProductId(cart.getId(), product.getId());
-        //Cart updatedCart = cartRepository.save(cart);
+
         return cartMapToCartResponse(cart);
+    }
+
+    @Override
+    public Cart getCart(Long id) {
+        return cartRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cart not found with id : "+id));
+    }
+
+
+    private CartItem buildCartItem(CartUpdateRequest cartUpdateRequest, Cart cart, Product product) {
+        CartItem cartItem = new CartItem();
+        cartItem.setCart(cart);
+        cartItem.setQuantity(cartUpdateRequest.getQuantity());
+        cartItem.setProduct(product);
+        return cartItem;
+    }
+
+    private void checkProductExistsInCart(CartUpdateRequest cartUpdateRequest, Cart cart) {
+        boolean productExistsInCart = cart.getCartItems().stream().anyMatch(cartItem -> cartItem.getProduct().getId().equals(cartUpdateRequest.getProductId()));
+        if (productExistsInCart){
+            throw new ProductAlreadyExistsInCartException("Product is already in the cart.");
+        }
+    }
+
+    private boolean isProductInCart(Cart cart, Product product) {
+        return cart.getCartItems().stream()
+                .anyMatch(cartItem -> cartItem.getProduct().getId().equals(product.getId()));
     }
 
     private CartResponse cartMapToCartResponse(Cart cart) {

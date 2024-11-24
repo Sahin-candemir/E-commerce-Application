@@ -19,13 +19,13 @@ public class CustomerServiceImpl implements CustomerService {
         this.customerRepository = customerRepository;
     }
 
+    /*
+        Customer eklendigi zaman hibernate veritabanında Cart
+        CascadeType.All sayesinde kaydedilir ve ilişkilendirilir
+    */
     @Override
     public CustomerResponse addCustomer(CustomerRequest customerRequest) {
-
-        /*
-            Customer eklendigi zaman hibernate veritabanında Cart
-            CascadeType.All sayesinde kaydedilir ve ilişkilendirilir
-         */
+        //telefon numarasını kullanan zaten kayıtlı bir müşteri varsa hata fırlatır
         checkCustomerExistsByPhoneNumber(customerRequest);
         Cart cart = new Cart();
         Customer customer = buildCustomer(customerRequest, cart);
